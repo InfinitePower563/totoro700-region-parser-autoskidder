@@ -1,0 +1,86 @@
+soup = BeautifulSoup(html_content, 'html.parser')
+violin = soup.find('table', class_='overridev')
+viola = soup.find('table', class_='overridev2')
+cello = soup.find('table', class_='overridec')
+bass = soup.find('table', class_='overrideb')
+harp = soup.find('table', class_='overrideh')
+global_count = 0
+global_region = 0
+global_phil = 0
+global_symp = 0
+def parse(table):
+    global global_region
+    global global_count
+    global global_phil
+    global global_symp
+    results = []
+    for row in table.find_all('tr')[1:]: 
+        cells = row.find_all('td')
+        school_info = cells[3].text.strip()
+        if "Cinco Ranch JH" in school_info:
+            global_count += 1
+            rank = cells[1].text.strip()
+            name = cells[2].text.strip()
+            organization = cells[-1].text.strip()
+            if organization == "":
+                results.append((name, rank, "None"))
+            else:
+                global_region += 1
+                if organization == "Philharmonic":
+                    global_phil += 1
+                else:
+                    global_symp += 1
+                results.append((name, rank, organization))
+    for name, rank, organization in results:
+        print(f"{name}: {rank} | {organization}")
+global_schools = {}
+global_school_rankings = {}
+def count_schools(table):
+    global global_schools
+    global global_school_rankings
+    global_schools = {}
+    for row in table.find_all('tr')[1:]:
+        cells = row.find_all('td')
+        rank = cells[1].text.strip()
+        if cells[-1].text.strip() == "":
+            continue
+        school_info = cells[3].text.strip().replace("Katy ISD", "").replace("Houston ISD", "").replace("(3C)", "").replace("\n", "").replace("                ", "")
+        try:
+            global_school_rankings[school_info].append(rank)
+        except KeyError:
+            global_school_rankings[school_info] = [rank]
+        if school_info not in global_schools:
+            global_schools[school_info] = 1
+        else:
+            global_schools[school_info] += 1
+    printed_schools = set()
+    for row in table.find_all('tr')[1:]:
+        cells = row.find_all('td')
+        if cells[-1].text.strip() == "":
+            continue
+        school_info = cells[3].text.strip().replace("Katy ISD", "").replace("Houston ISD", "").replace("(3C)", "").replace("\n", "").replace("                ", "")
+        if school_info not in printed_schools:
+            formatted_ranking = str(tuple([int(x) for x in global_school_rankings[school_info]]))
+            print(f"{school_info}: {global_schools[school_info]} {formatted_ranking}")
+            printed_schools.add(school_info)
+print("\n-Violin-\n")
+parse(violin)
+print("\n-Viola-\n")
+parse(viola)
+print("\n-Cello-\n")
+parse(cello)
+print("\n-Bass-\n")
+parse(bass)
+print("\n-Harp-\n")
+parse(harp)
+print(f"\nTotal people: {global_count} | Total people who made region: {global_region} | Philharmonic: {global_phil} | Symphony: {global_symp}\n\n\n")
+print("\n-Violin-\n")
+count_schools(violin)
+print("\n-Viola-\n")
+count_schools(viola)
+print("\n-Cello-\n")
+count_schools(cello)
+print("\n-Bass-\n")
+count_schools(bass)
+print("\n-Harp-\n")
+count_schools(harp)
